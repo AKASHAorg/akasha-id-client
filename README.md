@@ -8,6 +8,13 @@
 
 You can call `window.AKASHAidClient` in browsers by using `dist/akasha-id-client.js`.
 
+### Via npm
+
+`npm install --save git+https://github.com/AkashaProject/akasha-id-client`
+
+```js
+const Wallet = require('akasha-id-client')
+```
 
 
 ## Client API
