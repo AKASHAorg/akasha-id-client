@@ -1,8 +1,8 @@
 /* eslint-env mocha */
 /* global chai */
 
-const idClient = window.AKASHAidClient
-const AKASHAid = window.AKASHAid
+const IdClient = window.AKASHAidClient
+const IdWallet = window.AKASHAidWallet
 
 const sleep = timeout => {
   return new Promise(resolve => {
@@ -25,16 +25,16 @@ describe('AKASHA ID', function () {
     walletUrl: 'http://localhost:3000'
   }
   const profileName = 'jane'
-  let profilePass = 'password'
+  const profilePass = 'password'
 
   let Client
-  const Wallet = new AKASHAid.Wallet(config)
-    
+  const Wallet = new IdWallet(config)
+
   context('Init Client', () => {
     it('Should fail to instantiate Client without appInfo', () => {
       let err
       try {
-        Client = new idClient(undefined, {})
+        Client = new IdClient(undefined, {})
       } catch (error) {
         err = error
       }
@@ -44,28 +44,28 @@ describe('AKASHA ID', function () {
     it('Should fail to instantiate Client without config', () => {
       let err
       try {
-        Client = new idClient(appInfo, undefined)
+        Client = new IdClient(appInfo, undefined)
       } catch (error) {
         err = error
       }
       chai.assert.equal(err.message, 'Missing config details')
 
       try {
-        Client = new idClient(appInfo, {})
+        Client = new IdClient(appInfo, {})
       } catch (error) {
         err = error
       }
       chai.assert.equal(err.message, 'Missing config details')
 
       try {
-        Client = new idClient(appInfo, { hubUrls: 'http://localhost:8888' })
+        Client = new IdClient(appInfo, { hubUrls: 'http://localhost:8888' })
       } catch (error) {
         err = error
       }
       chai.assert.equal(err.message, 'Missing config details')
 
       try {
-        Client = new idClient(appInfo, { walletUrl: 'http://localhost:8888' })
+        Client = new IdClient(appInfo, { walletUrl: 'http://localhost:8888' })
       } catch (error) {
         err = error
       }
@@ -75,7 +75,7 @@ describe('AKASHA ID', function () {
     it('Should successfully instantiate Client with proper parameters', () => {
       let err
       try {
-        Client = new idClient(appInfo, config)
+        Client = new IdClient(appInfo, config)
       } catch (error) {
         err = error
       }
