@@ -77,10 +77,12 @@ class Client {
     * Bootstrap the login process by creating a listener that also handles
     * message exchanges for app registration
     *
+    * @param {Array} attributes - A list of profile attributes that are useful to the
+    * client application
     * @returns {Promise<Object>} - The response from the IDP, may contain a claim if
     * the app was allowed (i.e. if msg.allowed is true)
     */
-  async requestProfile () {
+  async requestProfile (attributes) {
     if (!this.loginLink) {
       await this.registrationLink()
     }
@@ -103,6 +105,7 @@ class Client {
                 token: msg.token,
                 nonce: msg.nonce,
                 appInfo: this.appInfo,
+                attributes,
                 key: b64Key
               }, 'base64')
               hub.broadcast(this.loginChannel, JSON.stringify({ request: 'appInfo', msg: encryptedMsg }))
