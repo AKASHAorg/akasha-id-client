@@ -47,9 +47,12 @@ const link = await client.registrationLink()
 // -> https://akasha.id/#/wallet/WyJhIiwiMDVjZjBjNzZmMGMwZTNmNjUwODVhYTA1YmZmODFkMGI3MmI1M2VmOSIsIkVEZUJLekpwUkoyeVhUVnVncFRTQ2c9PSIsMTY4NzQ2NF0=
 ```
 
-At the same time, attach an event listener for the response coming from the IDP app. The response is sent once the user has accepted or rejected the request.
-You can also pass an optional parameter with a list of attributes that the client app could use to enhance the UX. This list of attributes
-will help the user make an informed choice in terms of what profile data to disclose.
+At the same time, attach an event listener for the response coming from the IDP app. The response
+is sent once the user has accepted or rejected the request.
+
+You can also pass an optional parameter with a list of attributes that the client app could use
+to enhance the UX. This list of attributes will help the user make an informed choice in terms of
+what profile data to disclose in the AKASHA.id application.
 
 ```js
 const attributes = ['name', 'email']
