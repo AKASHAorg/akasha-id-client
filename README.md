@@ -19,7 +19,11 @@ const Wallet = require('akasha-id-client')
 
 ## Client API
 
-To initialize the client, you will need a list of attributes for the application you are creating, such as the application `name`, a short `description`, an app `image URL`, and finally the `app URL`. You can also pass an optional configuration parameter (as an object).
+To initialize the client, you will need a list of attributes for the application you are creating,
+such as the application `name`, a short `description`, an app `image URL`, and finally the `app URL`.
+You can also pass an optional configuration parameter (as an object), which contains the list of
+[signalhub](https://github.com/mafintosh/signalhub) URLs (`hubUrls`), the AKASHA.id wallet URL,
+and whether or not to output debug messages to console.
 
 ```js
 const Client = require('akasha-id-client')
@@ -37,6 +41,12 @@ const appInfo = {
 }
 const client = new Client(appInfo, config)
 ```
+
+Here are some free and open signalhub servers! For serious applications though, please consider deploying your own instances.
+
+    * https://signalhub-jccqtwhdwc.now.sh
+    * https://signalhub-hzbibrznqa.now.sh
+
 
 **NOTE:** For convenience during development, you can start a local hub server with `npm run testhub`, which will listen on port `8080`.
 
