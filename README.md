@@ -13,7 +13,7 @@ You can call `window.AKASHAidClient` in browsers by using `dist/akasha-id-client
 `npm install --save git+https://github.com/AkashaProject/akasha-id-client`
 
 ```js
-const Wallet = require('akasha-id-client')
+const Client = require('akasha-id-client')
 ```
 
 
