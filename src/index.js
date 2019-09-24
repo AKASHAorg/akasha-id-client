@@ -48,9 +48,11 @@ class Client {
   /**
     * Generate a special link to request access to the user's DID
     *
+    * @param {Boolean} encode - Whether to encode the hashed parameters or not (in case it
+    * will be part of a frag identifier)
     * @returns {string} - A formatted link containing the necessary info to register the app
     */
-  async registrationLink () {
+  async registrationLink (encode = false) {
     // generate a one time channel ID
     this.loginChannel = WebCrypto.genId()
     // generate NONCE
@@ -62,7 +64,9 @@ class Client {
 
     // use the wallet app URL for the link
     const hashParams = JSON.stringify([this.loginChannel, b64Key, this.nonce])
-    this.loginLink = this.config.walletUrl + Buffer.from(hashParams).toString('base64')
+    let hashed = Buffer.from(hashParams).toString('base64')
+    hashed = (encode) ? encodeURIComponent(hashed) : hashed
+    this.loginLink = this.config.walletUrl + hashed
     return this.loginLink
   }
 
