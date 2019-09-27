@@ -22,7 +22,8 @@ describe('AKASHA ID', function () {
 
   const config = {
     hubUrls: ['http://localhost:8888'],
-    walletUrl: 'http://localhost:3000'
+    walletUrl: 'http://localhost:3000',
+    timeout: 1000
   }
   const profileName = 'jane'
   const profilePass = 'password'
@@ -86,11 +87,11 @@ describe('AKASHA ID', function () {
   context('Client API', () => {
     it('Should successfully generate registration links', async () => {
       const link = await Client.registrationLink()
-      const walletStr = link.substring(0, config.walletUrl.length)
-      const reqStr = link.substring(config.walletUrl.length)
 
-      chai.assert.equal(walletStr, config.walletUrl)
-      chai.assert.equal(reqStr.length, 96)
+      const msg = await Wallet.parseRegisterLink(link.substring(config.walletUrl.length))
+      chai.assert.exists(msg.channel)
+      chai.assert.exists(msg.key)
+      chai.assert.exists(msg.nonce)
     })
   })
 
@@ -193,11 +194,21 @@ describe('AKASHA ID', function () {
           chai.assert.notEqual(response.refreshEncKey, clientClaim.refreshEncKey)
           chai.assert.equal(response.refreshEncKey, claim.key)
           resolve()
-        }).then(err => {
-          console.log(err)
-          resolve()
         })
       })
+    })
+
+    it('Should successfully close a pending refresh connection', async () => {
+      let err
+      // close wallet
+      await Wallet.logout()
+      // attempt to refresh
+      try {
+        await Client.refreshProfile(clientClaim)
+      } catch (error) {
+        err = error
+      }
+      chai.assert.equal(err.message, 'Profile refresh request timed out')
     })
   })
 })

@@ -41,6 +41,8 @@ class Client {
       throw new Error('Missing config details')
     }
     this.config = config
+    this.config.timeout = this.config.timeout || 5000 // 5 seconds
+    this.loginHub = undefined
     // debug
     DEBUGGING = config.debug ? config.debug : false
   }
@@ -53,10 +55,12 @@ class Client {
     * @returns {string} - A formatted link containing the necessary info to register the app
     */
   async registrationLink (encode = false) {
+    // cleaup previous login attemps
+    this.cleanUp()
     // generate a one time channel ID
     this.loginChannel = WebCrypto.genId()
     // generate NONCE
-    this.nonce = this.genNonce()
+    this.nonce = `${this.genNonce(100, 999)}-${this.genNonce(100, 999)}`
     // generate a one time symmetric encryption key and reveal it to AKASHA.id
     this.bootstrapKey = await WebCrypto.genAESKey(true, 'AES-GCM', 128)
     const extractedKey = await WebCrypto.exportKey(this.bootstrapKey)
@@ -64,6 +68,7 @@ class Client {
 
     // use the wallet app URL for the link
     const hashParams = JSON.stringify([this.loginChannel, b64Key, this.nonce])
+    debug(hashParams)
     let hashed = Buffer.from(hashParams).toString('base64')
     hashed = (encode) ? encodeURIComponent(hashed) : hashed
     this.loginLink = this.config.walletUrl + hashed
@@ -73,7 +78,7 @@ class Client {
   // Generate a none
   genNonce (min, max) {
     min = Math.ceil(min || 100000)
-    max = Math.floor(max || 9999999)
+    max = Math.floor(max || 999999)
     return Math.floor(Math.random() * (max - min + 1)) + min
   }
 
@@ -92,11 +97,13 @@ class Client {
     }
     return new Promise((resolve, reject) => {
       try {
-        const hub = initHub(this.config.hubUrls)
-        hub.subscribe(this.loginChannel).on('data', async (data) => {
+        this.loginHub = initHub(this.config.hubUrls)
+        this.loginHub.subscribe(this.loginChannel).on('data', async (data) => {
           data = JSON.parse(data)
           if (data.request === 'reqInfo') {
+            debug('Received encrypted data:', data)
             const msg = await WebCrypto.decrypt(this.bootstrapKey, data.msg, 'base64')
+            debug('Decrypted data:', msg)
             if (msg.nonce && msg.nonce === this.nonce) {
               // the AKASHA.id app is requesting app details
               const encKey = await WebCrypto.importKey(Buffer.from(msg.encKey, 'base64'))
@@ -112,14 +119,14 @@ class Client {
                 attributes,
                 key: b64Key
               }, 'base64')
-              hub.broadcast(this.loginChannel, JSON.stringify({ request: 'appInfo', msg: encryptedMsg }))
+              this.loginHub.broadcast(this.loginChannel, JSON.stringify({ request: 'appInfo', msg: encryptedMsg }))
             }
           } else if (data.request === 'claim') {
             const msg = await WebCrypto.decrypt(this.bootstrapKey, data.msg, 'base64')
+            debug('Got response:', msg)
             if (msg.nonce && msg.nonce === this.nonce) {
               resolve(msg)
-              debug('Got response:', msg)
-              this.cleanUp(hub)
+              this.cleanUp()
             }
           }
         })
@@ -158,6 +165,12 @@ class Client {
       // set up listener
       return new Promise((resolve, reject) => {
         const updateHub = initHub(this.config.hubUrls)
+        // close hub and free connection if the timeout is reached
+        window.setTimeout(() => {
+          updateHub.close()
+          reject(new Error('Profile refresh request timed out'))
+        }, this.config.timeout)
+        // request update
         try {
           updateHub.subscribe(updateChannel).on('data', async (data) => {
             data = JSON.parse(data)
@@ -165,7 +178,7 @@ class Client {
               const msg = await WebCrypto.decrypt(key, data.msg, 'base64')
               if (msg.nonce === nonce) {
                 resolve(msg)
-                this.cleanUp(updateHub)
+                updateHub.close()
               }
             }
           })
@@ -179,12 +192,12 @@ class Client {
           updateHub.broadcast(channel, JSON.stringify(toSend))
         } catch (e) {
           reject(e)
-          this.cleanUp(updateHub)
+          updateHub.close()
         }
       })
     } catch (e) {
       debug(e)
-      throw new Error(e)
+      throw new Error(e.message)
     }
   }
 
@@ -199,15 +212,16 @@ class Client {
   }
 
   /**
-    * Clean up the current request state and close the hub connection
-    *
-    * @param {Object} hub - The hub object
+    * Clean up the current registration request state
     */
-  cleanUp (hub) {
+  cleanUp () {
+    if (this.loginHub) {
+      this.loginHub.close()
+      this.loginHub = null
+    }
     this.loginChannel = null
     this.loginLink = null
     this.nonce = null
-    hub.close()
   }
 }
 
