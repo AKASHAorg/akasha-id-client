@@ -22,7 +22,7 @@
         "mocha-headless-chrome": "^2.0.3",
         "standard": "^13.1.0",
         "webpack": "^4.39.2",
-        "webpack-cli": "^3.3.6",
+        "webpack-cli": "^3.3.12",
         "akasha-id-wallet": "git+https://github.com/AkashaProject/akasha-id-wallet"
     },
     "author": "Andrei Sambra <andrei.sambra@akasha.world> (https://akasha.org/)"
